@@ -97,7 +97,13 @@ const SignUp = () => {
     if(!mobile){
       return setError("mobile number is required")
     }
+    
+
     const provider = new GoogleAuthProvider();
+
+    // provider.setCustomParameters({
+    //     prompt: 'select_account'
+    // });
 
     const result = await signInWithPopup(auth, provider)
     // console.log(result)

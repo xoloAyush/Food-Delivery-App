@@ -24,7 +24,7 @@ async function isAuth(req, res, next){
       return res.status(404).json({ message: "User not found" });
     }
 
-    req.user = user;
+    req.userId = user;
     next();
     }
     catch(err){

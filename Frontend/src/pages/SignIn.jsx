@@ -11,6 +11,8 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import {auth} from '../firebase'
 import { ClipLoader } from "react-spinners";
 import { useDispatch } from 'react-redux';
+import { setUserData } from '../redux/userSlice';
+
 
 const SignIn = () => {
   const primaryColor = "#ff4d2d"
