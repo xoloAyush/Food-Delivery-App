@@ -1,0 +1,170 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { IoIosArrowRoundBack } from 'react-icons/io';
+import { useDispatch, useSelector } from 'react-redux';
+import { FaUtensils } from "react-icons/fa6";
+import axios from 'axios';
+import { setMyShopData } from '../redux/ownerSlice';
+import { serverUrl } from '../App';
+
+function CreateEditShop() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch()
+
+  const { myShopData } = useSelector(state => state.owner);
+  const { currentCity, currentState, currentAddress } = useSelector(state => state.user);
+
+  // ✅ Initialize states
+  const [name, setName] = useState(myShopData?.name || "");
+  const [address, setAddress] = useState(myShopData?.address || currentAddress || "");
+  const [city, setCity] = useState(myShopData?.city || currentCity || "");
+  const [stateName, setStateName] = useState(myShopData?.state || currentState || "");
+
+  const [frontendImage, setFrontendImage] = useState(myShopData?.image || null)
+  const [backendImage, setBackendImage] = useState(null)
+
+  const handleImage = (e) =>{
+    const file = e.target.files[0];
+  if (!file) return; // Safety check
+
+    setBackendImage(file)
+    setFrontendImage(URL.createObjectURL(file))
+
+  }
+
+  const handleSubmit = async(e)=>{
+    e.preventDefault()
+
+    try{
+      const formData = new FormData()
+      formData.append("name", name)
+      formData.append("city", city)
+      formData.append("state", stateName)
+      formData.append("address", address)
+
+      if(backendImage){
+        formData.append("image", backendImage)
+      }
+      const result = await axios.post(
+  `${serverUrl}/api/shop/create-edit`,
+  formData, 
+  { withCredentials: true }
+);
+
+dispatch(setMyShopData(result.data)); // ✅ now defined
+console.log(result.data);
+
+
+    }catch(err){
+      console.log("error", err)
+    }
+  }
+  
+  return (
+    <div className='flex justify-center flex-col items-center p-6 bg-gradient-to-br from-orange-50 to-white relative min-h-screen'>
+      <div className='absolute top-[20px] left-[20px] z-[10] mb-[10px]' onClick={() => navigate("/")}>
+        <IoIosArrowRoundBack size={35} className='text-[#ff4d2d]' />
+      </div>
+
+      <div className='max-w-lg w-[450px] bg-white shadow-xl rounded-2xl p-8 border border-orange-100'>
+        <div className='flex flex-col items-center mb-6'>
+          <div className='bg-orange-100 p-4 rounded-full mb-4'>
+            <FaUtensils className='text-[#ff4d2d] w-16 h-16' />
+          </div>
+
+          <div className='text-3xl font-extrabold text-gray-900'>
+            {myShopData ? "Edit Shop" : "Add Shop"}
+          </div>
+        </div>
+
+        <form className='space-y-5' onSubmit={handleSubmit}>
+          {/* Shop Name */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Name</label>
+            <input
+              type='text'
+              placeholder='Enter Shop Name'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+            />
+          </div>
+
+          {/* Shop Image */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Shop Image</label>
+            <input
+              type='file'
+              accept='image/*'
+              className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+              onChange={handleImage}
+            />
+          </div>
+
+           <input
+    type='text'
+    placeholder='Or paste image URL'
+    value={frontendImage?.startsWith('blob:') ? '' : frontendImage || ''}
+    onChange={(e) => {
+      const url = e.target.value;
+      setFrontendImage(url);
+      setBackendImage(null); // clear backend file if using URL
+    }}
+    className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+  />
+
+          {frontendImage && <div className='mt-4'>
+            <img src={frontendImage} alt="" className='w-full h-48 object-cover rounded-lg border'/>
+          </div>}
+          
+
+          {/* City + State */}
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>City</label>
+              <input
+                type='text'
+                placeholder='City'
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>State</label>
+              <input
+                type='text'
+                placeholder='State'
+                value={stateName}
+                onChange={(e) => setStateName(e.target.value)}
+                className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+              />
+            </div>
+          </div>
+
+          {/* Address */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>Address</label>
+            <input
+              type='text'
+              placeholder='Enter Shop Address'
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className='w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+            />
+          </div>
+
+          <button
+            type='submit'
+            className='w-full bg-[#ff4d2d] text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-orange-600 hover:shadow-xl transition-all cursor-pointer'
+          >
+            Save
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default CreateEditShop;
